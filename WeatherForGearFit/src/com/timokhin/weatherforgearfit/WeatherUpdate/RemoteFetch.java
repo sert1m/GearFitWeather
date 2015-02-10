@@ -36,8 +36,7 @@ public class RemoteFetch {
     private static final String OPEN_WEATHER_MAP_API_BY_CITY = 
             "http://api.openweathermap.org/data/2.5/weather?q=%s&units=metric";
     private static final String OPEN_WEATHER_MAP_API_BY_LOCATION = 
-    		"http://api.openweathermap.org/data/2.5/weather?lat=%.6f&lon=%.6f";
-    
+    		"http://api.openweathermap.org/data/2.5/weather?lat=%.6f&lon=%.6f&units=metric";  
     private static final String OPEN_WEATHER_MAP_API_ICON = 
     		"http://openweathermap.org/img/w/%s.png";
     /**
