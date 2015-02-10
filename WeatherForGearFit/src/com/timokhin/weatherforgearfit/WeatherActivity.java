@@ -3,9 +3,16 @@ package com.timokhin.weatherforgearfit;
 import java.util.ArrayList;
 import java.util.List;
 
+import Dialog.GearFitWeather;
+import WeatherUpdate.WeatherDataConsumer;
+import WeatherUpdate.WeatherManager;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -25,16 +32,6 @@ public class WeatherActivity extends Activity {
 	
 	// List of consumers, that need updating weather
 	private List<WeatherDataConsumer> consumers;
-	/**
-	 * Thread for updating weather data from server.
-	 * @author timokhin
-	 *
-	 */
-	private class UpdateThread extends Thread {
-		public void run() {
-			WeatherManager.getInstance().update(WeatherActivity.this, new CityPreference(WeatherActivity.this).getCity());
-		}
-	}
 	
 	public WeatherActivity() {
 		consumers = new ArrayList<WeatherDataConsumer>();
@@ -45,7 +42,7 @@ public class WeatherActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
         
-        updateWeatherManager();
+        updateWeatherData();
         
         WeatherFragment weatherFrgmnt = new WeatherFragment();    
         consumers.add(weatherFrgmnt); 
@@ -76,14 +73,38 @@ public class WeatherActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.change_city){
-            showInputDialog();
-        }
-        else if (item.getItemId() == R.id.update) {
-        	updateWeatherData();
-        }
+    	switch(item.getItemId())
+    	{
+	    	case(R.id.change_city):
+	            showInputDialog();
+	            return true;
+	    	case(R.id.update):
+	        	updateWeatherData();
+	        	return true;
+	    	case(R.id.update_by_location):
+	        	updateByCurrentLocation();
+	        	return true;
+    	}
         return false;
     }
+    
+    public void updateWeatherData() {
+        try {
+	        Thread updateWeather = new Thread(){
+	        	public void run () {
+	        		WeatherManager.getInstance().update(WeatherActivity.this, new CityPreference(WeatherActivity.this).getCity());
+	        	}
+	        };
+	        updateWeather.start();
+	        updateWeather.join();
+	    	for (WeatherDataConsumer c : consumers)
+	    		c.updateWeather();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();	
+		}
+    }
+    
     /**
      * Changing a city from user input
      */
@@ -101,29 +122,34 @@ public class WeatherActivity extends Activity {
         });
         builder.show();
     }
-    /**
-     * Updating weather data
-     */
-    private void updateWeatherManager() {
+    
+    private void updateByCurrentLocation() {
+    	LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+    	String provider = locationManager.getBestProvider(new Criteria(), true);
+    	Location location = locationManager.getLastKnownLocation(provider);
+    	System.out.println(provider);
+	    final double lat = location.getLatitude();
+	    final double lon = location.getLongitude();
+    	System.out.println(lat + " " + lon);
         try {
-	        Thread updateWeather = new UpdateThread();
+	        Thread updateWeather = new Thread(){
+	        	public void run () {
+	        		WeatherManager.getInstance().update(WeatherActivity.this, lat, lon);
+	        	}
+	        };
 	        updateWeather.start();
 	        updateWeather.join();
+	    	for (WeatherDataConsumer c : consumers)
+	    		c.updateWeather();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.printStackTrace();	
 		}
     }
     
-    public void changeCity(String city){
+    private void changeCity(String city){
     	CityPreference cityPreference =  new CityPreference(this);
     	cityPreference.setCity(city);
     	updateWeatherData();
-    }
-    
-    public void updateWeatherData() {
-    	updateWeatherManager();
-    	for (WeatherDataConsumer c : consumers)
-    		c.updateWeather();
     }
 }

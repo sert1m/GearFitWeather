@@ -14,5 +14,10 @@
    		android:orderInCategory="2"
    		android:title="@string/update"
    		android:showAsAction="never"/>
-
+   <item 
+        android:id="@+id/update_by_location"
+		android:orderInCategory="3"
+		android:title="@string/update_by_location"
+		android:showAsAction="never"/>
+   
 </menu>

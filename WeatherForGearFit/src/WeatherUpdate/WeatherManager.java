@@ -1,9 +1,10 @@
-package com.timokhin.weatherforgearfit;
+package WeatherUpdate;
 
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
@@ -44,27 +45,39 @@ public class WeatherManager{
 	public synchronized void update(Context context, String city) {
 		try {			
 			final JSONObject json = RemoteFetch.getJSON(context, city);
-			
-			location = json.getString("name").toUpperCase(Locale.US) + 
-					   ", " +json.getJSONObject("sys").getString("country");
-			
-            JSONObject details = json.getJSONArray("weather").getJSONObject(0);
-            JSONObject main = json.getJSONObject("main");
-            
-			description = details.getString("description").toUpperCase(Locale.US);
-			humidity = main.getInt("humidity") + "%";
-			pressure = main.getString("pressure") + " hPa";
-			temperature = String.format("%.2f", main.getDouble("temp")) + " ℃";
-			
-            DateFormat df = DateFormat.getDateTimeInstance();
-            updatedOn = df.format(new Date(json.getLong("dt")*1000));
-            
-            actualId = details.getInt("id");
-            sunrise = json.getJSONObject("sys").getLong("sunrise") * 1000;
-            sunset =  json.getJSONObject("sys").getLong("sunset") * 1000;
+			parse(json);
 		} catch(Exception e) {
 			Log.e("WeatherManager", "One or more fields not found in the JSON data");
         }
+	}
+	public synchronized void update(Context context, double lat, double lon) {
+		try {			
+			final JSONObject json = RemoteFetch.getJSON(context, lat, lon);
+			parse(json);
+		} catch(Exception e) {
+			Log.e("WeatherManager", "One or more fields not found in the JSON data");
+        }
+	}
+	
+	private void parse(JSONObject json) throws JSONException {
+		System.out.println(json);
+		location = json.getString("name").toUpperCase(Locale.US) + 
+					   ", " +json.getJSONObject("sys").getString("country");
+			
+		JSONObject details = json.getJSONArray("weather").getJSONObject(0);
+		JSONObject main = json.getJSONObject("main");
+		 
+		description = details.getString("description").toUpperCase(Locale.US);
+		humidity = main.getInt("humidity") + "%";
+		pressure = main.getString("pressure") + " hPa";
+		temperature = String.format("%.2f", main.getDouble("temp")) + " ℃";
+			
+		DateFormat df = DateFormat.getDateTimeInstance();
+		updatedOn = df.format(new Date(json.getLong("dt")*1000));
+		 
+		actualId = details.getInt("id");
+		sunrise = json.getJSONObject("sys").getLong("sunrise") * 1000;
+		sunset =  json.getJSONObject("sys").getLong("sunset") * 1000;
 	}
 	
 	public String getLocation() {
