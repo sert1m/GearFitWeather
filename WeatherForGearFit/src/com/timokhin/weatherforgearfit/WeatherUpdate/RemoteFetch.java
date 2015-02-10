@@ -2,6 +2,7 @@ package com.timokhin.weatherforgearfit.WeatherUpdate;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,7 +19,9 @@ import org.json.JSONObject;
 
 
 
+
 import com.timokhin.weatherforgearfit.R;
+
 
 
 
@@ -34,6 +37,9 @@ public class RemoteFetch {
             "http://api.openweathermap.org/data/2.5/weather?q=%s&units=metric";
     private static final String OPEN_WEATHER_MAP_API_BY_LOCATION = 
     		"http://api.openweathermap.org/data/2.5/weather?lat=%.6f&lon=%.6f";
+    
+    private static final String OPEN_WEATHER_MAP_API_ICON = 
+    		"http://openweathermap.org/img/w/%s.png";
     /**
      * 
      * @param context
@@ -71,7 +77,7 @@ public class RemoteFetch {
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setConnectTimeout(5000);
         connection.addRequestProperty("x-api-key", context.getString(R.string.open_weather_maps_app_id));
-    	
+   
         BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         
         StringBuffer json = new StringBuffer(1024);      
@@ -88,5 +94,20 @@ public class RemoteFetch {
         }
          
         return data;
+    }
+    
+    public static InputStream getIconInputStream(Context context, String icon) {
+    	try {
+	    	URL url = new URL(String.format(OPEN_WEATHER_MAP_API_ICON, icon));
+	    	
+	        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+	        connection.setConnectTimeout(5000);
+	        connection.addRequestProperty("x-api-key", context.getString(R.string.open_weather_maps_app_id));
+	        
+	        return connection.getInputStream();
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		return null;
+    	}
     }
 }

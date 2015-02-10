@@ -30,6 +30,8 @@ public class WeatherManager{
 	private int actualId;
 	private long sunrise;
 	private long sunset;
+	
+	private String icon;
 
 	private WeatherManager() {
 		
@@ -68,6 +70,7 @@ public class WeatherManager{
 		JSONObject main = json.getJSONObject("main");
 		 
 		description = details.getString("description").toUpperCase(Locale.US);
+		icon = details.getString("icon");
 		humidity = main.getInt("humidity") + "%";
 		pressure = main.getString("pressure") + " hPa";
 		temperature = String.format("%.2f", main.getDouble("temp")) + " ℃";
@@ -106,5 +109,8 @@ public class WeatherManager{
 	}
 	public long getSunset() {
 		return sunset;
+	}
+	public String getIcon() {
+		return icon;
 	}
 }

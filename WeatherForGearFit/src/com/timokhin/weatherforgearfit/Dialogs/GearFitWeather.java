@@ -11,6 +11,7 @@ import com.samsung.android.sdk.cup.ScupListBox;
 import com.samsung.android.sdk.cup.ScupListBox.ItemClickListener;
 import com.timokhin.weatherforgearfit.R;
 import com.timokhin.weatherforgearfit.WeatherActivity;
+import com.timokhin.weatherforgearfit.WeatherUpdate.RemoteFetch;
 import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherDataConsumer;
 import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherManager;
 
@@ -43,7 +44,9 @@ public class GearFitWeather extends ScupDialog implements WeatherDataConsumer {
 	
 		descr.setItemMainText(0, weatherMngr.getDescription());
 		descr.setItemSubText(0, weatherMngr.getTemperature() + " " + weatherMngr.getHumidity() + " " + weatherMngr.getPressure());
-		descr.setItemIcon(0, getIcon(weatherMngr.getActualId(), weatherMngr.getSunrise(), weatherMngr.getSunset()));
+		//descr.setItemIcon(0, getIcon(weatherMngr.getActualId(), weatherMngr.getSunrise(), weatherMngr.getSunset()));
+		
+		setIcon(weatherMngr.getIcon());
 		// Update Dialog for displaying a new weather data
 		update();		
 	}
@@ -78,6 +81,7 @@ public class GearFitWeather extends ScupDialog implements WeatherDataConsumer {
         });
 	}
 	
+	@SuppressWarnings("unused")
 	private  Bitmap getIcon(int actualId, long sunrise, long sunset) {
 		// There is a little code duplicate in case Gear Fit does not supports third party fonts.
 		// So I need another way to display icons.
@@ -106,10 +110,24 @@ public class GearFitWeather extends ScupDialog implements WeatherDataConsumer {
                      break;
             }
         }
-        
+
         Bitmap image = BitmapFactory.decodeResource(activity.getResources(), imageId);
 		image = Bitmap.createScaledBitmap(image, 90 , 90, true);
 		
         return image;
+	}
+	private void setIcon(final String icon) {
+		try {
+			Thread thread = new Thread() {
+				public void run() {
+					Bitmap image = BitmapFactory.decodeStream(RemoteFetch.getIconInputStream(getContext(), icon));
+					descr.setItemIcon(0, Bitmap.createScaledBitmap(image, 90 , 90, true));
+				}
+			};
+			thread.start();
+			thread.join();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
