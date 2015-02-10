@@ -1,4 +1,4 @@
-package WeatherUpdate;
+package com.timokhin.weatherforgearfit.WeatherUpdate;
 
 import java.io.BufferedReader;
 import java.io.IOException;

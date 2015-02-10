@@ -2,8 +2,9 @@ package com.timokhin.weatherforgearfit;
 
 import java.util.Date;
 
-import WeatherUpdate.WeatherDataConsumer;
-import WeatherUpdate.WeatherManager;
+import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherDataConsumer;
+import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherManager;
+
 import android.app.Fragment;
 import android.graphics.Typeface;
 import android.os.Bundle;

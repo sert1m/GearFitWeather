@@ -1,4 +1,4 @@
-package WeatherUpdate;
+package com.timokhin.weatherforgearfit.WeatherUpdate;
 
 import java.text.DateFormat;
 import java.util.Date;

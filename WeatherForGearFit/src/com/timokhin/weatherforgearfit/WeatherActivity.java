@@ -3,9 +3,6 @@ package com.timokhin.weatherforgearfit;
 import java.util.ArrayList;
 import java.util.List;
 
-import Dialog.GearFitWeather;
-import WeatherUpdate.WeatherDataConsumer;
-import WeatherUpdate.WeatherManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -21,6 +18,9 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 import com.samsung.android.sdk.cup.Scup;
+import com.timokhin.weatherforgearfit.Dialogs.GearFitWeather;
+import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherDataConsumer;
+import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherManager;
 /**
  * Main activity class. It displays weather on the phone, initialize 
  * SCUP (Samsung Companion User Interface Profile) and creates a widget 

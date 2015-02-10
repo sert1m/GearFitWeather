@@ -1,9 +1,7 @@
-package Dialog;
+package com.timokhin.weatherforgearfit.Dialogs;
 
 import java.util.Date;
 
-import WeatherUpdate.WeatherDataConsumer;
-import WeatherUpdate.WeatherManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,6 +11,8 @@ import com.samsung.android.sdk.cup.ScupListBox;
 import com.samsung.android.sdk.cup.ScupListBox.ItemClickListener;
 import com.timokhin.weatherforgearfit.R;
 import com.timokhin.weatherforgearfit.WeatherActivity;
+import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherDataConsumer;
+import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherManager;
 
 /**
  * Widget on wearable device. Contains ListBox with one element to display
