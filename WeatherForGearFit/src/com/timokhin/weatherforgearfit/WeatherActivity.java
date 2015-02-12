@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.samsung.android.sdk.cup.Scup;
 import com.timokhin.weatherforgearfit.Dialogs.GearFitWeather;
@@ -127,10 +128,15 @@ public class WeatherActivity extends Activity {
     	LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
     	String provider = locationManager.getBestProvider(new Criteria(), true);
     	Location location = locationManager.getLastKnownLocation(provider);
-    	System.out.println(provider);
+    	
+    	if (location == null) {
+    		Toast.makeText(this, "No location found =(", Toast.LENGTH_SHORT).show();
+    		return;
+    	}
+    	
 	    final double lat = location.getLatitude();
 	    final double lon = location.getLongitude();
-    	System.out.println(lat + " " + lon);
+
         try {
 	        Thread updateWeather = new Thread(){
 	        	public void run () {

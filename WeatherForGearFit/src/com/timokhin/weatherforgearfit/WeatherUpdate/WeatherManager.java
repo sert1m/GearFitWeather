@@ -62,7 +62,7 @@ public class WeatherManager{
 	}
 	
 	private void parse(JSONObject json) throws JSONException {
-		System.out.println(json);
+
 		location = json.getString("name").toUpperCase(Locale.US) + 
 					   ", " +json.getJSONObject("sys").getString("country");
 			

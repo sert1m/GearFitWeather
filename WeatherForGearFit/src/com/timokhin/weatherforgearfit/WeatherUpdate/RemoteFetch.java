@@ -64,7 +64,6 @@ public class RemoteFetch {
     public static JSONObject getJSON(Context context, double lat, double lon) {
     	try {
     		URL url = new URL(String.format(Locale.US, OPEN_WEATHER_MAP_API_BY_LOCATION, lat, lon));
-            System.out.println(url);
             return getJSON(context, url);
     	} catch(Exception e){
             return null;

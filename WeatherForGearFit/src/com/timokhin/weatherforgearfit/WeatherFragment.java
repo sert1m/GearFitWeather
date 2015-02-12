@@ -48,9 +48,7 @@ public class WeatherFragment extends Fragment implements WeatherDataConsumer {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);  
-        System.out.println("OnCreate");
         weatherFont = Typeface.createFromAsset(getActivity().getAssets(), "fonts/weather.ttf");   
-        
     }
     
     private void renderWeather(){
