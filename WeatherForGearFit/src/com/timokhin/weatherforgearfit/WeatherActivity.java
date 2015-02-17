@@ -136,7 +136,9 @@ public class WeatherActivity extends Activity {
 	    		c.renderWeather();
 	    	}
 	    	
-		} catch (Exception e) {
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+		} catch (NullPointerException e) {
 			e.printStackTrace();
 			Toast.makeText(this, "No location found =(", Toast.LENGTH_SHORT).show();
 		}
