@@ -20,7 +20,8 @@ import android.widget.Toast;
 
 import com.samsung.android.sdk.cup.Scup;
 import com.timokhin.weatherforgearfit.Dialogs.GearFitWeather;
-import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherDataConsumer;
+import com.timokhin.weatherforgearfit.WeatherUpdate.CurrentWeatherData;
+import com.timokhin.weatherforgearfit.WeatherUpdate.OpenWeatherAPI;
 import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherManager;
 /**
  * Main activity class. It displays weather on the phone, initialize 
@@ -33,17 +34,15 @@ public class WeatherActivity extends Activity {
 	
 	// List of consumers, that need updating weather
 	private List<WeatherDataConsumer> consumers;
-	
-	public WeatherActivity() {
-		consumers = new ArrayList<WeatherDataConsumer>();
-	}
-	
+	private WeatherManager manager = WeatherManager.getInstance();
+		
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_weather);
+        setContentView(R.layout.activity_weather);  
         
-        updateWeatherData();
+        consumers = new ArrayList<WeatherDataConsumer>();
+        manager.setWeatherAPI(new OpenWeatherAPI(getString(R.string.open_weather_maps_app_id)));   
         
         WeatherFragment weatherFrgmnt = new WeatherFragment();    
         consumers.add(weatherFrgmnt); 
@@ -54,8 +53,7 @@ public class WeatherActivity extends Activity {
         	scup.initialize(this);
         	// Creating a dialog on wearable device side.
 	        GearFitWeather gearWeather = new GearFitWeather(this);	        
-	    	consumers.add(gearWeather);
-	    	
+	    	consumers.add(gearWeather);   	
         }catch (Exception e){
         	Log.e("Scup", "Vendor not Supported!");
         }   
@@ -63,6 +61,8 @@ public class WeatherActivity extends Activity {
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction().add(R.id.container, weatherFrgmnt).commit();
         }
+        
+        updateByCity();
     }
     
     @Override
@@ -79,8 +79,8 @@ public class WeatherActivity extends Activity {
 	    	case(R.id.change_city):
 	            showInputDialog();
 	            return true;
-	    	case(R.id.update):
-	        	updateWeatherData();
+	    	case(R.id.update_by_city):
+	        	updateByCity();
 	        	return true;
 	    	case(R.id.update_by_location):
 	        	updateByCurrentLocation();
@@ -88,24 +88,7 @@ public class WeatherActivity extends Activity {
     	}
         return false;
     }
-    
-    public void updateWeatherData() {
-        try {
-	        Thread updateWeather = new Thread(){
-	        	public void run () {
-	        		WeatherManager.getInstance().update(WeatherActivity.this, new CityPreference(WeatherActivity.this).getCity());
-	        	}
-	        };
-	        updateWeather.start();
-	        updateWeather.join();
-	    	for (WeatherDataConsumer c : consumers)
-	    		c.updateWeather();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();	
-		}
-    }
-    
+        
     /**
      * Changing a city from user input
      */
@@ -124,38 +107,44 @@ public class WeatherActivity extends Activity {
         builder.show();
     }
     
-    private void updateByCurrentLocation() {
-    	LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-    	String provider = locationManager.getBestProvider(new Criteria(), true);
-    	Location location = locationManager.getLastKnownLocation(provider);
-    	
-    	if (location == null) {
-    		Toast.makeText(this, "No location found =(", Toast.LENGTH_SHORT).show();
-    		return;
-    	}
-    	
-	    final double lat = location.getLatitude();
-	    final double lon = location.getLongitude();
+    public void updateByCity() {
+    	try {
+	    	CurrentWeatherData data = manager.getCurrentWeatherData(new CityPreference(this).getCity());
+	    	for (WeatherDataConsumer c : consumers) {
+	    		c.setCurrentWeatherData(data);
+	    		c.renderWeather();
+	    	}
 
+    	} catch (IllegalStateException e) {
+    		e.printStackTrace();
+    	}	    	
+    }
+    
+    public void updateByCurrentLocation() {
         try {
-	        Thread updateWeather = new Thread(){
-	        	public void run () {
-	        		WeatherManager.getInstance().update(WeatherActivity.this, lat, lon);
-	        	}
-	        };
-	        updateWeather.start();
-	        updateWeather.join();
-	    	for (WeatherDataConsumer c : consumers)
-	    		c.updateWeather();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();	
+	    	LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+	    	String provider = locationManager.getBestProvider(new Criteria(), true);
+	    	Location location = locationManager.getLastKnownLocation(provider);
+	    	    	
+		    final double lat = location.getLatitude();
+		    final double lon = location.getLongitude();
+
+		    CurrentWeatherData data = manager.getCurrentWeatherData(lat, lon);
+	  
+	    	for (WeatherDataConsumer c : consumers) {
+	    		c.setCurrentWeatherData(data);
+	    		c.renderWeather();
+	    	}
+	    	
+		} catch (Exception e) {
+			e.printStackTrace();
+			Toast.makeText(this, "No location found =(", Toast.LENGTH_SHORT).show();
 		}
     }
     
     private void changeCity(String city){
     	CityPreference cityPreference =  new CityPreference(this);
     	cityPreference.setCity(city);
-    	updateWeatherData();
+    	updateByCity();
     }
 }

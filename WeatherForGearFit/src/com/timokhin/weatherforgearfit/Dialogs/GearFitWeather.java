@@ -1,18 +1,16 @@
 package com.timokhin.weatherforgearfit.Dialogs;
 
-import java.util.Date;
-
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
 import com.samsung.android.sdk.cup.ScupDialog;
 import com.samsung.android.sdk.cup.ScupListBox;
 import com.samsung.android.sdk.cup.ScupListBox.ItemClickListener;
 import com.timokhin.weatherforgearfit.R;
 import com.timokhin.weatherforgearfit.WeatherActivity;
-import com.timokhin.weatherforgearfit.WeatherUpdate.RemoteFetch;
-import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherDataConsumer;
+import com.timokhin.weatherforgearfit.WeatherDataConsumer;
+import com.timokhin.weatherforgearfit.WeatherUpdate.CurrentWeatherData;
+import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherData;
 import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherManager;
 
 /**
@@ -24,31 +22,13 @@ import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherManager;
 public class GearFitWeather extends ScupDialog implements WeatherDataConsumer {
 
 	private WeatherActivity activity;
-	private WeatherManager weatherMngr;
 	private ScupListBox descr;
+	
+	private CurrentWeatherData data;
 	
 	public GearFitWeather(Context activity) {
 		super(activity);
 		this.activity = (WeatherActivity) activity;
-		weatherMngr = WeatherManager.getInstance();
-	}
-	
-	@Override
-	public void updateWeather() {
-		if (weatherMngr.getLocation() == null)	{
-			showToast(activity.getString(R.string.place_not_found), ScupDialog.TOAST_DURATION_SHORT);
-			return;
-		}
-		// Set new Data
-		setTitle(weatherMngr.getLocation());
-	
-		descr.setItemMainText(0, weatherMngr.getDescription());
-		descr.setItemSubText(0, weatherMngr.getTemperature() + " " + weatherMngr.getHumidity() + " " + weatherMngr.getPressure());
-		//descr.setItemIcon(0, getIcon(weatherMngr.getActualId(), weatherMngr.getSunrise(), weatherMngr.getSunset()));
-		
-		setIcon(weatherMngr.getIcon());
-		// Update Dialog for displaying a new weather data
-		update();		
 	}
 	
 	@Override
@@ -58,19 +38,17 @@ public class GearFitWeather extends ScupDialog implements WeatherDataConsumer {
 		setTitleTextColor(0xffff6600);
 		
 		descr = new ScupListBox(this);
-		descr.setItemMainTextSize(6);
+		descr.setItemMainTextSize(8);
 		descr.setItemSubTextSize(5);
 		descr.addItem(0, "");
 		descr.setItemClickListener(new ItemClickListener() {		
 			@Override
 			public void onClick(ScupListBox list, int id, int groupId, boolean buttonState) {
 				if (id == 0)
-					activity.updateWeatherData();
+					activity.updateByCity();
 			}
 		});	
 		descr.show();
-		
-		updateWeather();
 		
 		setBackEnabled(true);
 		setBackPressedListener(new BackPressedListener() {
@@ -79,55 +57,37 @@ public class GearFitWeather extends ScupDialog implements WeatherDataConsumer {
                 finish();
             }
         });
+		renderWeather();
 	}
-	
-	@SuppressWarnings("unused")
-	private  Bitmap getIcon(int actualId, long sunrise, long sunset) {
-		// There is a little code duplicate in case Gear Fit does not supports third party fonts.
-		// So I need another way to display icons.
-        int id = actualId / 100;
-        int imageId = 0;
-        if(actualId == 800){
-            long currentTime = new Date().getTime();
-            if(currentTime>=sunrise && currentTime<sunset) {
-            	imageId = R.drawable.sunny;
-            } else {
-                imageId = R.drawable.clear_night;
-            }
-        } else {
-            switch(id) {
-            case 2 : imageId = R.drawable.thunder;
-                     break;         
-            case 3 : imageId = R.drawable.drizzle;
-                     break;     
-            case 7 : imageId = R.drawable.foggy;
-                     break;
-            case 8 : imageId = R.drawable.cloudy;
-                     break;
-            case 6 : imageId = R.drawable.snowy;
-                     break;
-            case 5 : imageId = R.drawable.rainy;
-                     break;
-            }
-        }
-
-        Bitmap image = BitmapFactory.decodeResource(activity.getResources(), imageId);
-		image = Bitmap.createScaledBitmap(image, 90 , 90, true);
-		
-        return image;
-	}
-	private void setIcon(final String icon) {
-		try {
-			Thread thread = new Thread() {
-				public void run() {
-					Bitmap image = BitmapFactory.decodeStream(RemoteFetch.getIconInputStream(getContext(), icon));
-					descr.setItemIcon(0, Bitmap.createScaledBitmap(image, 90 , 90, true));
-				}
-			};
-			thread.start();
-			thread.join();
-		} catch (Exception e) {
-			e.printStackTrace();
+	@Override
+	public void renderWeather() {
+		if (data.getLocation() == null)	{
+			showToast(activity.getString(R.string.place_not_found), ScupDialog.TOAST_DURATION_SHORT);
+			return;
 		}
+		// Set new Data
+		setTitle(data.getLocation());
+		WeatherData d = data.getData();
+		descr.setItemMainText(0, d.getDescription());
+        StringBuilder builder = new StringBuilder();
+        builder.append(d.getTemperature());
+        builder.append("℃ ");
+        builder.append(d.getHumidity());
+        builder.append("% ");
+        builder.append(d.getPressure());
+        builder.append(" hPa");
+		descr.setItemSubText(0, builder.toString());
+		
+		setIcon(d.getIcon());
+		// Update Dialog for displaying a new weather data
+		update();		
+	}
+	@Override
+	public void setCurrentWeatherData(CurrentWeatherData data) {
+		this.data = data;
+	}
+	private void setIcon(String icon) {
+		Bitmap image = WeatherManager.getInstance().getWeatherIcon(icon);
+		descr.setItemIcon(0, Bitmap.createScaledBitmap(image, 90 , 90, true));
 	}
 }

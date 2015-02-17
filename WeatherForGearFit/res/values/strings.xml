@@ -2,9 +2,9 @@
 <resources>
 
     <string name="app_name">Gear Fit Weather</string>
-    <string name="change_city">Change city</string>
-    <string name="update">Update weather</string>
-    <string name="update_by_location">Update by location</string>
+    <string name="change_city">Change City</string>
+    <string name="update_by_city">Update Weather by City</string>
+    <string name="update_by_location">Update Weather by Location</string>
  
     <string name="open_weather_maps_app_id">11111</string>
      
@@ -18,5 +18,24 @@
     <string name="weather_drizzle">&#xf01c;</string>
      
     <string name="place_not_found">Sorry, no weather data found.</string>    
-     
+    
+    <string-array name="wind_direrctions">
+        <item>North</item>
+	    <item>North-northeast</item>
+	    <item>Northeast</item>
+	    <item>East-northeast</item>
+	    <item>East</item>
+	    <item>East-southeast</item>
+	    <item>Southeast</item>
+	    <item>South-southeast</item>
+	    <item>South</item>
+	    <item>South-southwest</item>
+	    <item>Southwest</item>
+	    <item>West-southwest</item>
+	    <item>West</item>
+	    <item>West-northhwest</item>
+	    <item>Westnorth</item>
+	    <item>North-nothwest</item>
+    </string-array>
+    
 </resources>

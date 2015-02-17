@@ -2,8 +2,8 @@ package com.timokhin.weatherforgearfit;
 
 import java.util.Date;
 
-import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherDataConsumer;
-import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherManager;
+import com.timokhin.weatherforgearfit.WeatherUpdate.CurrentWeatherData;
+import com.timokhin.weatherforgearfit.WeatherUpdate.WeatherData;
 
 import android.app.Fragment;
 import android.graphics.Typeface;
@@ -27,8 +27,8 @@ public class WeatherFragment extends Fragment implements WeatherDataConsumer {
     TextView currentTemperatureField;
     TextView weatherIcon;
     
-    WeatherManager weatherMngr;
- 
+    CurrentWeatherData data;
+    
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
@@ -40,8 +40,7 @@ public class WeatherFragment extends Fragment implements WeatherDataConsumer {
         currentTemperatureField = (TextView)rootView.findViewById(R.id.current_temperature_field);
         weatherIcon = (TextView)rootView.findViewById(R.id.weather_icon);
         weatherIcon.setTypeface(weatherFont);
-        weatherMngr = WeatherManager.getInstance();
-        updateWeather();
+        renderWeather();
         return rootView; 
     }
     
@@ -51,17 +50,23 @@ public class WeatherFragment extends Fragment implements WeatherDataConsumer {
         weatherFont = Typeface.createFromAsset(getActivity().getAssets(), "fonts/weather.ttf");   
     }
     
-    private void renderWeather(){
+    public void renderWeather(){
         try {
-            cityField.setText(weatherMngr.getLocation());            
-            detailsField.setText(weatherMngr.getDescription() + "\n" + 
-            					 weatherMngr.getHumidity() + "\n" + 
-            					 weatherMngr.getPressure());
-             
-            currentTemperatureField.setText(weatherMngr.getTemperature());
-            updatedField.setText("Last update: " + weatherMngr.getUpdatedOn());
+        	WeatherData d = data.getData();
+            cityField.setText(data.getLocation());
+            
+            StringBuilder builder = new StringBuilder();
+            builder.append(d.getDescription());
+            builder.append("\n");
+            builder.append(d.getHumidity());
+            builder.append(" %\n");
+            builder.append(d.getPressure());
+            builder.append(" hPa");
+            detailsField.setText(builder.toString());       
+            currentTemperatureField.setText(d.getTemperature() + " ℃");
+            updatedField.setText("Last update: " + d.getDate());
      
-            weatherIcon.setText(getIcon(weatherMngr.getActualId(), weatherMngr.getSunrise(), weatherMngr.getSunset()));      
+            weatherIcon.setText(getIcon(d.getActualId(), data.getSunrise(), data.getSunset()));      
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -104,10 +109,10 @@ public class WeatherFragment extends Fragment implements WeatherDataConsumer {
         return icon;
 	}
     
-    public void updateWeather(){
-		if(weatherMngr == null || weatherMngr.getLocation() == null)
-             Toast.makeText(getActivity(), getActivity().getString(R.string.place_not_found), Toast.LENGTH_LONG).show(); 
+    public void setCurrentWeatherData(CurrentWeatherData data){
+		if(data == null || data.getLocation() == null)
+            Toast.makeText(getActivity(), getActivity().getString(R.string.place_not_found), Toast.LENGTH_LONG).show(); 
         else 
-		     renderWeather();          
+		    this.data = data;          
 	}
 }

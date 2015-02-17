@@ -1,116 +1,188 @@
 package com.timokhin.weatherforgearfit.WeatherUpdate;
 
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.Locale;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
-import android.content.Context;
-import android.util.Log;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+import com.timokhin.weatherforgearfit.util.JSONParsable;
+
 /**
  * Class, that parses and contains weather data.
  * @author timokhin
  *
  */
 public class WeatherManager{
+	private static WeatherManager manager = new WeatherManager();
+	private WeatherAPI api;
 	
-	private static WeatherManager mngr;
+	private enum Requests {CURRENT_BY_CITY, CURRENT_BY_LOCATION,
+						   DAILY_BY_CITY, DAILY_BY_LOCATION,
+						   HOURS_BY_CITY, HOURS_BY_LOCATION }
 	
-	Activity weatherActivity;
-	
-	private String location;
-	private String description;
-	private String updatedOn;
-	private String humidity;
-	private String pressure;
-	private String temperature;
-	private int actualId;
-	private long sunrise;
-	private long sunset;
-	
-	private String icon;
-
-	private WeatherManager() {
+	private class UpdateThread extends Thread {
 		
+		JSONParsable data;
+		Requests request;
+		String city;
+		double lat, lon;
+		
+		UpdateThread(JSONParsable data, Requests requests) {
+			this.data = data;
+			this.request = requests; 
+		}
+		
+		void setLocaction(String city) {
+			this.city = city;
+		}
+		void setLocation(double lat, double lon) {
+			this.lat = lat;
+			this.lon = lon;
+		}
+		public void run() {
+			JSONObject json = null;
+			
+			switch (request) {
+				case CURRENT_BY_CITY:
+					json = api.getCurrentWeather(city);
+					break;
+				case CURRENT_BY_LOCATION:
+					json = api.getCurrentWeather(lat, lon);
+					break;
+				case DAILY_BY_CITY:
+					json = api.getDailyWeatherForecast(city);
+					break;
+				case DAILY_BY_LOCATION:
+					json = api.getDailyWeatherForecast(lat, lon);
+					break;
+				case HOURS_BY_CITY: 
+					json = api.getHoursWeatherForecast(city);
+					break;
+				case HOURS_BY_LOCATION:
+					json = api.getHoursWeatherForecast(lat, lon);
+					break;
+				default:
+					return;
+			}
+			
+			try {
+				data.parse(json);
+			} catch (JSONException e) {
+				e.printStackTrace();
+				data = null;
+			}
+		}
 	}
 	
 	public static WeatherManager getInstance() {
-		if (mngr == null)
-			mngr = new WeatherManager();
+		if (manager == null)
+			manager = new WeatherManager();
 		
-		return mngr;
+		return manager;
 	}
 	
-	public synchronized void update(Context context, String city) {
-		try {			
-			final JSONObject json = RemoteFetch.getJSON(context, city);
-			parse(json);
-		} catch(Exception e) {
-			Log.e("WeatherManager", "One or more fields not found in the JSON data");
-        }
+	public WeatherAPI getApi() {
+		return api;
 	}
-	public synchronized void update(Context context, double lat, double lon) {
-		try {			
-			final JSONObject json = RemoteFetch.getJSON(context, lat, lon);
-			parse(json);
-		} catch(Exception e) {
-			Log.e("WeatherManager", "One or more fields not found in the JSON data");
-        }
-	}
-	
-	private void parse(JSONObject json) throws JSONException {
 
-		location = json.getString("name").toUpperCase(Locale.US) + 
-					   ", " +json.getJSONObject("sys").getString("country");
-			
-		JSONObject details = json.getJSONArray("weather").getJSONObject(0);
-		JSONObject main = json.getJSONObject("main");
-		 
-		description = details.getString("description").toUpperCase(Locale.US);
-		icon = details.getString("icon");
-		humidity = main.getInt("humidity") + "%";
-		pressure = main.getString("pressure") + " hPa";
-		temperature = String.format("%.2f", main.getDouble("temp")) + " ℃";
-			
-		DateFormat df = DateFormat.getDateTimeInstance();
-		updatedOn = df.format(new Date(json.getLong("dt")*1000));
-		 
-		actualId = details.getInt("id");
-		sunrise = json.getJSONObject("sys").getLong("sunrise") * 1000;
-		sunset =  json.getJSONObject("sys").getLong("sunset") * 1000;
+	public void setWeatherAPI(WeatherAPI api) {
+		this.api = api;
 	}
 	
-	public String getLocation() {
-		return location;
+	public CurrentWeatherData getCurrentWeatherData(String city) {
+		try {
+			UpdateThread thread = new UpdateThread(new CurrentWeatherData(), Requests.CURRENT_BY_CITY);
+			thread.setLocaction(city);
+			thread.start();
+			thread.join();
+			return (CurrentWeatherData) thread.data;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-	public String getDescription() {
-		return description;
+	public CurrentWeatherData getCurrentWeatherData(double lat, double lon) {
+		try {
+			UpdateThread thread = new UpdateThread(new CurrentWeatherData(), Requests.CURRENT_BY_LOCATION);
+			thread.setLocation(lat, lon);
+			thread.start();
+			thread.join();
+			return (CurrentWeatherData) thread.data;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-	public String getUpdatedOn() {
-		return updatedOn;
+	public HourWeatherForecast getHourWeatherForecast(String city) {
+		try {
+			UpdateThread thread = new UpdateThread(new HourWeatherForecast(), Requests.HOURS_BY_CITY);
+			thread.setLocaction(city);
+			thread.start();
+			thread.join();
+			return (HourWeatherForecast) thread.data;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-	public String getHumidity() {
-		return humidity;
+	public HourWeatherForecast getHourWeatherForecast(double lat, double lon){
+		try {
+			UpdateThread thread = new UpdateThread(new HourWeatherForecast(), Requests.CURRENT_BY_LOCATION);
+			thread.setLocation(lat, lon);
+			thread.start();
+			thread.join();
+			return (HourWeatherForecast) thread.data;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-	public String getPressure() {
-		return pressure;
+	public DailyWeatherForecast getDailyWeatherForecast(String city) {
+		try {
+			UpdateThread thread = new UpdateThread(new DailyWeatherForecast(), Requests.DAILY_BY_CITY);
+			thread.setLocaction(city);;
+			thread.start();
+			thread.join();
+			return (DailyWeatherForecast) thread.data;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-	public String getTemperature() {
-		return temperature;
+	public DailyWeatherForecast getDailyWeatherForecast(double lat, double lon) {
+		try {
+			UpdateThread thread = new UpdateThread(new DailyWeatherForecast(), Requests.DAILY_BY_CITY);
+			thread.setLocation(lat, lon);
+			thread.start();
+			thread.join();
+			return (DailyWeatherForecast) thread.data;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-	public int getActualId() {
-		return actualId;
-	}
-	public long getSunrise() {
-		return sunrise;
-	}
-	public long getSunset() {
-		return sunset;
-	}
-	public String getIcon() {
-		return icon;
+	public Bitmap getWeatherIcon(final String icon) {
+		
+		class IconThread extends Thread {
+			Bitmap image;
+			public void run() {			
+				try {
+					image = BitmapFactory.decodeStream(api.getIconInputStream(icon));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		try {
+			IconThread thread = new IconThread();
+			thread.start();
+			thread.join();
+			return thread.image;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
