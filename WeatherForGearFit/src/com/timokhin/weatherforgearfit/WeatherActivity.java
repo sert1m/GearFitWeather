@@ -62,7 +62,7 @@ public class WeatherActivity extends Activity {
             getFragmentManager().beginTransaction().add(R.id.container, weatherFrgmnt).commit();
         }
         
-        updateByCity();
+        updateByCurrentLocation();
     }
     
     @Override

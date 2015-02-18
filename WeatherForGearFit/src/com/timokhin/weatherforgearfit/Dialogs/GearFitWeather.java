@@ -70,8 +70,7 @@ public class GearFitWeather extends ScupDialog implements WeatherDataConsumer {
 		WeatherData d = data.getData();
 		descr.setItemMainText(0, d.getDescription());
         StringBuilder builder = new StringBuilder();
-        builder.append(d.getTemperature());
-        builder.append("℃ ");
+        builder.append(String.format("%.2f ℃ ", d.getTemperature()));
         builder.append(d.getHumidity());
         builder.append("% ");
         builder.append(d.getPressure());

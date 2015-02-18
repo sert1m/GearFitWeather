@@ -6,7 +6,7 @@
     <string name="update_by_city">Update Weather by City</string>
     <string name="update_by_location">Update Weather by Location</string>
  
-    <string name="open_weather_maps_app_id">11111</string>
+    <string name="open_weather_maps_app_id">ad39e69887c86dafdaace85845c1ce50</string>
      
     <string name="weather_sunny">&#xf00d;</string>
     <string name="weather_clear_night">&#xf02e;</string>

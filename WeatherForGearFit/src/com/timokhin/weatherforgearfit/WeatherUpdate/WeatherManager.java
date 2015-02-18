@@ -71,6 +71,9 @@ public class WeatherManager{
 			} catch (JSONException e) {
 				e.printStackTrace();
 				data = null;
+			} catch (Exception e) {
+				e.printStackTrace();
+				data = null;
 			}
 		}
 	}

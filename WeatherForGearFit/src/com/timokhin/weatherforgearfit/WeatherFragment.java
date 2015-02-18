@@ -63,7 +63,7 @@ public class WeatherFragment extends Fragment implements WeatherDataConsumer {
             builder.append(d.getPressure());
             builder.append(" hPa");
             detailsField.setText(builder.toString());       
-            currentTemperatureField.setText(d.getTemperature() + " ℃");
+            currentTemperatureField.setText(String.format("%.2f  ℃", d.getTemperature()));
             updatedField.setText("Last update: " + d.getDate());
      
             weatherIcon.setText(getIcon(d.getActualId(), data.getSunrise(), data.getSunset()));      
